@@ -159,7 +159,7 @@ const ChatScreen = () => {
   if (!chatRoom) {
     return <ActivityIndicator />;
   }
-  // console.log(chatRoom);
+  // console.log(JSON.stringify(chatRoom));
 
   return (
     // <KeyboardAvoidingView
