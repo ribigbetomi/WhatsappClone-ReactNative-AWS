@@ -7,6 +7,8 @@ export const listChatRooms = /* GraphQL */ `
           _deleted
           chatRoom {
             id
+            name
+            image
             updatedAt
             users {
               items {

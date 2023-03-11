@@ -27,6 +27,7 @@ import {
 
 import Message from "../components/ChatListItem/Message";
 import InputBox from "../components/InputBox";
+import { Feather } from "@expo/vector-icons";
 
 const ChatScreen = () => {
   const [chatRoom, setChatRoom] = useState(null);
@@ -36,8 +37,6 @@ const ChatScreen = () => {
 
   const route = useRoute();
   const chatRoomID = route.params.id;
-  // console.log(route.params, "paramsChat");
-  // console.log(route, "route");
   const navigation = useNavigation();
 
   // useEffect(() => {
@@ -45,8 +44,18 @@ const ChatScreen = () => {
   // }, [route.params.name]);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: route.params.name });
-  }, [route.params.name]);
+    navigation.setOptions({
+      title: route.params.name,
+      headerRight: () => (
+        <Feather
+          onPress={() => navigation.navigate("Group Info", { id: chatRoomID })}
+          name="more-vertical"
+          size={24}
+          color="black"
+        />
+      ),
+    });
+  }, [route.params.name, chatRoomID]);
 
   // fetch Chat Room
   useEffect(() => {

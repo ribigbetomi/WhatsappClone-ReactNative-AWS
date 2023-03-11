@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import chats from "../../../assets/data/chats.json";
 import ChatListItem from "../../components/ChatListItem";
 import { listChatRooms } from "./queries";
+import { onUpdateChatRoom } from "../../graphql/subscriptions";
 
 const ChatsScreen = () => {
   const [chatRooms, setChatRooms] = useState([]);
@@ -33,7 +34,25 @@ const ChatsScreen = () => {
 
   useEffect(() => {
     fetchChatRooms();
-  }, [setLoading, setChatRooms]);
+  }, [listChatRooms]);
+
+  // useEffect(() => {
+  //   const subscription = API.graphql(
+  //     graphqlOperation(onUpdateChatRoom)
+  //   ).subscribe({
+  //     next: ({ value }) => {
+  //       console.log(value.data, "value");
+  //       // setChatRooms((cr) => ({
+  //       //   ...(cr || {}),
+  //       //   ...value.data.onUpdateChatRoom,
+  //       // }));
+  //       fetchChatRooms();
+  //     },
+  //     error: (err) => console.warn(err),
+  //   });
+
+  //   return () => subscription.unsubscribe();
+  // }, []);
 
   return (
     <FlatList
