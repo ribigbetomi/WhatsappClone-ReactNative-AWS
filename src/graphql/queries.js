@@ -14,6 +14,7 @@ export const getChatRoom = /* GraphQL */ `
           text
           chatroomID
           userID
+          images
           updatedAt
           _version
           _deleted
@@ -42,6 +43,7 @@ export const getChatRoom = /* GraphQL */ `
         text
         chatroomID
         userID
+        images
         updatedAt
         _version
         _deleted
@@ -81,6 +83,7 @@ export const listChatRooms = /* GraphQL */ `
           text
           chatroomID
           userID
+          images
           updatedAt
           _version
           _deleted
@@ -129,6 +132,7 @@ export const syncChatRooms = /* GraphQL */ `
           text
           chatroomID
           userID
+          images
           updatedAt
           _version
           _deleted
@@ -154,6 +158,7 @@ export const getMessage = /* GraphQL */ `
       text
       chatroomID
       userID
+      images
       updatedAt
       _version
       _deleted
@@ -174,6 +179,7 @@ export const listMessages = /* GraphQL */ `
         text
         chatroomID
         userID
+        images
         updatedAt
         _version
         _deleted
@@ -203,70 +209,7 @@ export const syncMessages = /* GraphQL */ `
         text
         chatroomID
         userID
-        updatedAt
-        _version
-        _deleted
-        _lastChangedAt
-      }
-      nextToken
-      startedAt
-    }
-  }
-`;
-export const listMessagesByChatRoom = /* GraphQL */ `
-  query ListMessagesByChatRoom(
-    $chatroomID: ID!
-    $createdAt: ModelStringKeyConditionInput
-    $sortDirection: ModelSortDirection
-    $filter: ModelMessageFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listMessagesByChatRoom(
-      chatroomID: $chatroomID
-      createdAt: $createdAt
-      sortDirection: $sortDirection
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        createdAt
-        text
-        chatroomID
-        userID
-        updatedAt
-        _version
-        _deleted
-        _lastChangedAt
-      }
-      nextToken
-      startedAt
-    }
-  }
-`;
-export const messagesByUserID = /* GraphQL */ `
-  query MessagesByUserID(
-    $userID: ID!
-    $sortDirection: ModelSortDirection
-    $filter: ModelMessageFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    messagesByUserID(
-      userID: $userID
-      sortDirection: $sortDirection
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        createdAt
-        text
-        chatroomID
-        userID
+        images
         updatedAt
         _version
         _deleted
@@ -291,6 +234,7 @@ export const getUser = /* GraphQL */ `
           text
           chatroomID
           userID
+          images
           updatedAt
           _version
           _deleted
@@ -413,6 +357,7 @@ export const getUserChatRoom = /* GraphQL */ `
           text
           chatroomID
           userID
+          images
           updatedAt
           _version
           _deleted
@@ -536,6 +481,72 @@ export const syncUserChatRooms = /* GraphQL */ `
           _lastChangedAt
         }
         createdAt
+        updatedAt
+        _version
+        _deleted
+        _lastChangedAt
+      }
+      nextToken
+      startedAt
+    }
+  }
+`;
+export const listMessagesByChatRoom = /* GraphQL */ `
+  query ListMessagesByChatRoom(
+    $chatroomID: ID!
+    $createdAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelMessageFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listMessagesByChatRoom(
+      chatroomID: $chatroomID
+      createdAt: $createdAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        createdAt
+        text
+        chatroomID
+        userID
+        images
+        updatedAt
+        _version
+        _deleted
+        _lastChangedAt
+      }
+      nextToken
+      startedAt
+    }
+  }
+`;
+export const messagesByUserID = /* GraphQL */ `
+  query MessagesByUserID(
+    $userID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelMessageFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    messagesByUserID(
+      userID: $userID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        createdAt
+        text
+        chatroomID
+        userID
+        images
         updatedAt
         _version
         _deleted

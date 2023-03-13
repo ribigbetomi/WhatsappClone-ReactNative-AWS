@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Auth, JS, Storage } from "aws-amplify";
 import { useEffect, useState } from "react";
+import { S3Image } from "aws-amplify-react-native";
 // import ImageAttachments from "./ImageAttachments";
 // import VideoAttachments from "./VideoAttachments";
 
@@ -65,6 +66,9 @@ const Message = ({ message }) => {
         },
       ]}
     >
+      {message.images?.length > 0 && (
+        <S3Image imgKey={message.images[0]} style={styles.image} />
+      )}
       <Text>{message.text}</Text>
       <Text style={styles.time}>{dayjs(message.createdAt).fromNow(true)}</Text>
       {/* {downloadAttachments.length > 0 && (
@@ -116,8 +120,11 @@ const styles = StyleSheet.create({
     padding: 3,
   },
   image: {
-    flex: 1,
+    width: 200,
+    height: 100,
+    // flex: 1,
     borderColor: "white",
+    resizeMode: "contain",
     borderWidth: 1,
     borderRadius: 5,
   },

@@ -18,11 +18,12 @@ import {
 } from "../graphql/mutations";
 import * as ImagePicker from "expo-image-picker";
 
-// import "react-native-get-random-values";
-// import { v4 as uuidv4 } from "uuid";
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
 
 const InputBox = ({ chatRoom }) => {
   const [text, setText] = useState("");
+  const [image, setImage] = useState(null);
   const [files, setFiles] = useState([]);
   //   const [progresses, setProgresses] = useState({});
 
@@ -34,6 +35,10 @@ const InputBox = ({ chatRoom }) => {
       text,
       userID: authUser.attributes.sub,
     };
+    if (image) {
+      newMessage.images = [await uploadFile(image)];
+      setImage(null);
+    }
 
     const newMessageData = await API.graphql(
       graphqlOperation(createMessage, { input: newMessage })
@@ -60,65 +65,68 @@ const InputBox = ({ chatRoom }) => {
         },
       })
     );
-    // };
+  };
 
-    // const addAttachment = async (file, messageID) => {
-    //   const types = {
-    //     image: "IMAGE",
-    //     video: "VIDEO",
-    //   };
+  // const addAttachment = async (file, messageID) => {
+  //   const types = {
+  //     image: "IMAGE",
+  //     video: "VIDEO",
+  //   };
 
-    //   const newAttachment = {
-    //     storageKey: await uploadFile(file.uri),
-    //     type: types[file.type],
-    //     width: file.width,
-    //     height: file.height,
-    //     duration: file.duration,
-    //     messageID,
-    //     chatroomID: chatroom.id,
-    //   };
-    //   return API.graphql(
-    //     graphqlOperation(createAttachment, { input: newAttachment })
-    //   );
-    // };
+  //   const newAttachment = {
+  //     storageKey: await uploadFile(file.uri),
+  //     type: types[file.type],
+  //     width: file.width,
+  //     height: file.height,
+  //     duration: file.duration,
+  //     messageID,
+  //     chatroomID: chatroom.id,
+  //   };
+  //   return API.graphql(
+  //     graphqlOperation(createAttachment, { input: newAttachment })
+  //   );
+  // };
 
-    // const pickImage = async () => {
-    //   // No permissions request is necessary for launching the image library
-    //   let result = await ImagePicker.launchImageLibraryAsync({
-    //     mediaTypes: ImagePicker.MediaTypeOptions.All,
-    //     quality: 1,
-    //     allowsMultipleSelection: true,
-    //   });
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      // mediaTypes: ImagePicker.MediaTypeOptions.All,
+      quality: 1,
+      // allowsMultipleSelection: true,
+    });
+    console.log(result);
 
-    //   if (!result.cancelled) {
-    //     if (result.selected) {
-    //       setFiles(result.selected);
-    //     } else {
-    //       setFiles([result]);
-    //     }
-    //   }
-    // };
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      // if (result.selected) {
+      //   setFiles(result.selected);
+      // } else {
+      //   setFiles([result]);
+      // }
+    }
+  };
 
-    // const uploadFile = async (fileUri) => {
-    //   try {
-    //     const response = await fetch(fileUri);
-    //     const blob = await response.blob();
-    //     const key = `${uuidv4()}.png`;
+  const uploadFile = async (fileUri) => {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      const key = `${uuidv4()}.png`;
 
-    //     await Storage.put(key, blob, {
-    //       contentType: "image/png", // contentType is optional
-    //       progressCallback: (progress) => {
-    //         console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
-    //         setProgresses((p) => ({
-    //           ...p,
-    //           [fileUri]: progress.loaded / progress.total,
-    //         }));
-    //       },
-    //     });
-    //     return key;
-    //   } catch (err) {
-    //     console.log("Error uploading file:", err);
-    //   }
+      await Storage.put(key, blob, {
+        contentType: "image/png", // contentType is optional
+        // progressCallback: (progress) => {
+        //   console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+        //   setProgresses((p) => ({
+        //     ...p,
+        //     [fileUri]: progress.loaded / progress.total,
+        //   }));
+        // },
+      });
+      return key;
+    } catch (err) {
+      console.log("Error uploading file:", err);
+    }
   };
 
   return (
@@ -169,32 +177,56 @@ const InputBox = ({ chatRoom }) => {
     //   </View>
     // )} */}
 
-    <SafeAreaView edges={["bottom"]} style={styles.container}>
-      {/* Icon */}
-      <AntDesign
-        //   onPress={pickImage}
-        name="plus"
-        size={20}
-        color="royalblue"
-      />
+    <>
+      {image && (
+        <View style={styles.attachmentsContainer}>
+          <Image
+            source={{ uri: image }}
+            style={styles.selectedImage}
+            resizeMode="contain"
+          />
+          <MaterialIcons
+            name="highlight-remove"
+            onPress={() => setImage(null)}
+            // onPress={() =>
+            //   setFiles((existingFiles) =>
+            //     existingFiles.filter((file) => file !== item)
+            //   )
+            // }
+            size={20}
+            color="gray"
+            style={styles.removeSelectedImage}
+          />
+        </View>
+      )}
 
-      {/* Text Input */}
-      <TextInput
-        value={text}
-        onChangeText={setText}
-        style={styles.input}
-        placeholder="Type your message..."
-      />
+      <SafeAreaView edges={["bottom"]} style={styles.container}>
+        {/* Icon */}
+        <AntDesign
+          onPress={pickImage}
+          name="plus"
+          size={20}
+          color="royalblue"
+        />
 
-      {/* Icon */}
-      <MaterialIcons
-        onPress={onSend}
-        style={styles.send}
-        name="send"
-        size={16}
-        color="white"
-      />
-    </SafeAreaView>
+        {/* Text Input */}
+        <TextInput
+          value={text}
+          onChangeText={setText}
+          style={styles.input}
+          placeholder="Type your message..."
+        />
+
+        {/* Icon */}
+        <MaterialIcons
+          onPress={onSend}
+          style={styles.send}
+          name="send"
+          size={16}
+          color="white"
+        />
+      </SafeAreaView>
+    </>
   );
 };
 
