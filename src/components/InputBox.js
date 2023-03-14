@@ -24,7 +24,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const InputBox = ({ chatRoom }) => {
   const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   // console.log(text, "text");
   // console.log(image, "img");
   const [files, setFiles] = useState([]);
@@ -57,12 +57,13 @@ const InputBox = ({ chatRoom }) => {
       text,
       userID: authUser.attributes.sub,
     };
-    if (image) {
-      console.log(image, "image");
-      // let img = await uploadFile(image);
-      // newMessage.images = [].push(img);
-      newMessage.images = [await uploadFile(image)];
-      setImage(null);
+    if (images.length > 0) {
+      // console.log(images, "image");
+      newMessage.images = await Promise.all(
+        images.map((img) => uploadFile(img))
+      );
+      // since the parameter of the arrow function is the same with the parameter of the function we're calling, we can also do images.map(uploadFile)
+      setImages([]);
     }
     console.log(newMessage.images, "newimg");
 
@@ -100,12 +101,16 @@ const InputBox = ({ chatRoom }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       // mediaTypes: ImagePicker.MediaTypeOptions.All,
       quality: 1,
-      // allowsMultipleSelection: true,
+      allowsMultipleSelection: true,
     });
-    // console.log(result, "result");
+    console.log(result, "result");
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      if (result.assets.length > 1) {
+        setImages(result.assets.map((asset) => asset.uri));
+      } else {
+        setImages([result.assets[0].uri]);
+      }
 
       // console.log(JSON.stringify(result.assets[0].uri), "stringimageUri");
       // if (result.selected) {
@@ -195,24 +200,36 @@ const InputBox = ({ chatRoom }) => {
     // )} */}
 
     <>
-      {image && (
+      {images.length > 0 && (
         <View style={styles.attachmentsContainer}>
-          <Image
-            source={{ uri: image }}
-            style={styles.selectedImage}
-            resizeMode="contain"
-          />
-          <MaterialIcons
-            name="highlight-remove"
-            onPress={() => setImage("")}
-            // onPress={() =>
-            //   setFiles((existingFiles) =>
-            //     existingFiles.filter((file) => file !== item)
-            //   )
-            // }
-            size={20}
-            color="gray"
-            style={styles.removeSelectedImage}
+          <FlatList
+            data={images}
+            horizontal
+            renderItem={({ item }) => (
+              <>
+                <Image
+                  source={{ uri: item }}
+                  style={styles.selectedImage}
+                  resizeMode="contain"
+                />
+                <MaterialIcons
+                  name="highlight-remove"
+                  onPress={() =>
+                    setImages((existingImages) =>
+                      existingImages.filter((img) => img !== item)
+                    )
+                  }
+                  // onPress={() =>
+                  //   setFiles((existingFiles) =>
+                  //     existingFiles.filter((file) => file !== item)
+                  //   )
+                  // }
+                  size={20}
+                  color="gray"
+                  style={styles.removeSelectedImage}
+                />
+              </>
+            )}
           />
         </View>
       )}

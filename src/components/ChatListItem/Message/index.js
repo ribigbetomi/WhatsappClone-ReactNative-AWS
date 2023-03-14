@@ -21,6 +21,7 @@ const Message = ({ message }) => {
   const [isMe, setIsMe] = useState(false);
   const [imageSources, setImageSources] = useState([]);
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const { width } = useWindowDimensions();
 
   // console.log(imageSources, "sourcess");
   // const isMyMessage = () => {
@@ -28,8 +29,6 @@ const Message = ({ message }) => {
   // };
 
   //   const [downloadAttachments, setDownloadedAttachments] = useState([]);
-
-  //   const { width } = useWindowDimensions();
 
   useEffect(() => {
     const isMyMessage = async () => {
@@ -44,12 +43,16 @@ const Message = ({ message }) => {
   useEffect(() => {
     const downloadedImages = async () => {
       if (message.images?.length > 0) {
-        const uri = await Storage.get(message.images[0], { level: "public" });
+        // const uri = await Storage.get(message.images[0], { level: "public" });
         // console.log(uri, "uri");
-        setImageSources([{ uri }]);
+        const uris = await Promise.all(message.images.map(Storage.get));
+        // since the parameter of the arrow function is the same with the parameter of the function we're calling, we can also do images.map(uploadFile)
+        setImageSources(uris.map((uri) => ({ uri })));
+        // setImageSources([{ uris }]);
       }
     };
     downloadedImages();
+
     // const downloadAttachments = async () => {
     //   if (message.Attachments.items) {
     //     const downloadedAttachments = await Promise.all(
@@ -69,7 +72,7 @@ const Message = ({ message }) => {
   // console.log(imageSources, "sourcess");
   // }, [JSON.stringify(message.Attachments.items)]);
 
-  //   const imageContainerWidth = width * 0.8 - 30;
+  const imageContainerWidth = width * 0.8 - 30;
 
   //   const imageAttachments = downloadAttachments.filter(
   //     (at) => at.type === "IMAGE"
@@ -89,19 +92,27 @@ const Message = ({ message }) => {
       ]}
     >
       {message.images?.length > 0 && (
-        <>
-          {/* <Text>test</Text> */}
-          <Pressable onPress={() => setImageViewerVisible(true)}>
-            <Image source={imageSources[0]} style={styles.image} />
-            {/* to display image using url */}
-          </Pressable>
+        <View style={[{ width: imageContainerWidth }, styles.images]}>
+          {imageSources.map((imageSource, index) => (
+            <Pressable
+              style={
+                imageSources.length === 1
+                  ? { width: "100%", aspectRatio: 2, padding: 3 }
+                  : styles.imageContainer
+              }
+              key={index}
+              onPress={() => setImageViewerVisible(true)}
+            >
+              <Image source={imageSource} style={styles.image} />
+            </Pressable>
+          ))}
           <ImageView
             images={imageSources}
             imageIndex={0}
             visible={imageViewerVisible}
             onRequestClose={() => setImageViewerVisible(false)}
           />
-        </>
+        </View>
       )}
       {/* <S3Image imgKey={message.images[0]} style={styles.image} /> */}
       <Text>{message.text}</Text>
@@ -155,9 +166,9 @@ const styles = StyleSheet.create({
     padding: 3,
   },
   image: {
-    width: 200,
-    height: 100,
-    // flex: 1,
+    // width: 200,
+    // height: 100,
+    flex: 1,
     borderColor: "white",
     resizeMode: "contain",
     borderWidth: 1,
