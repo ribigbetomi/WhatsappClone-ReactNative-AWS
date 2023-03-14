@@ -1,20 +1,32 @@
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  useWindowDimensions,
+  Pressable,
+  Image,
+} from "react-native";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Auth, JS, Storage } from "aws-amplify";
+import { Auth, JS } from "aws-amplify";
+import { Storage } from "@aws-amplify/storage";
 import { useEffect, useState } from "react";
 import { S3Image } from "aws-amplify-react-native";
 // import ImageAttachments from "./ImageAttachments";
 // import VideoAttachments from "./VideoAttachments";
-
+import ImageView from "react-native-image-viewing";
 dayjs.extend(relativeTime);
 
 const Message = ({ message }) => {
+  const [isMe, setIsMe] = useState(false);
+  const [imageSources, setImageSources] = useState([]);
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+
+  // console.log(imageSources, "sourcess");
   // const isMyMessage = () => {
   //   return message.userID === authUser.attributes.sub;
   // };
 
-  const [isMe, setIsMe] = useState(false);
   //   const [downloadAttachments, setDownloadedAttachments] = useState([]);
 
   //   const { width } = useWindowDimensions();
@@ -29,23 +41,33 @@ const Message = ({ message }) => {
     isMyMessage();
   }, []);
 
-  //   useEffect(() => {
-  //     const downloadAttachments = async () => {
-  //       if (message.Attachments.items) {
-  //         const downloadedAttachments = await Promise.all(
-  //           message.Attachments.items.map((attachment) =>
-  //             Storage.get(attachment.storageKey).then((uri) => ({
-  //               ...attachment,
-  //               uri,
-  //             }))
-  //           )
-  //         );
+  useEffect(() => {
+    const downloadedImages = async () => {
+      if (message.images?.length > 0) {
+        const uri = await Storage.get(message.images[0], { level: "public" });
+        // console.log(uri, "uri");
+        setImageSources([{ uri }]);
+      }
+    };
+    downloadedImages();
+    // const downloadAttachments = async () => {
+    //   if (message.Attachments.items) {
+    //     const downloadedAttachments = await Promise.all(
+    //       message.Attachments.items.map((attachment) =>
+    //         Storage.get(attachment.storageKey).then((uri) => ({
+    //           ...attachment,
+    //           uri,
+    //         }))
+    //       )
+    //     );
 
-  //         setDownloadedAttachments(downloadedAttachments);
-  //       }
-  //     };
-  //     downloadAttachments();
-  //   }, [JSON.stringify(message.Attachments.items)]);
+    //     setDownloadedAttachments(downloadedAttachments);
+    //   }
+    // };
+    // downloadAttachments();
+  }, [message]);
+  // console.log(imageSources, "sourcess");
+  // }, [JSON.stringify(message.Attachments.items)]);
 
   //   const imageContainerWidth = width * 0.8 - 30;
 
@@ -67,8 +89,21 @@ const Message = ({ message }) => {
       ]}
     >
       {message.images?.length > 0 && (
-        <S3Image imgKey={message.images[0]} style={styles.image} />
+        <>
+          {/* <Text>test</Text> */}
+          <Pressable onPress={() => setImageViewerVisible(true)}>
+            <Image source={imageSources[0]} style={styles.image} />
+            {/* to display image using url */}
+          </Pressable>
+          <ImageView
+            images={imageSources}
+            imageIndex={0}
+            visible={imageViewerVisible}
+            onRequestClose={() => setImageViewerVisible(false)}
+          />
+        </>
       )}
+      {/* <S3Image imgKey={message.images[0]} style={styles.image} /> */}
       <Text>{message.text}</Text>
       <Text style={styles.time}>{dayjs(message.createdAt).fromNow(true)}</Text>
       {/* {downloadAttachments.length > 0 && (

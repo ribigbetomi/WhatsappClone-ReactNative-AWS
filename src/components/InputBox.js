@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { API, graphqlOperation, Auth, Storage } from "aws-amplify";
+import { API, graphqlOperation, Auth } from "aws-amplify";
+import { Storage } from "@aws-amplify/storage";
 import {
   createMessage,
   updateChatRoom,
@@ -24,9 +25,30 @@ import { v4 as uuidv4 } from "uuid";
 const InputBox = ({ chatRoom }) => {
   const [text, setText] = useState("");
   const [image, setImage] = useState(null);
+  // console.log(text, "text");
+  // console.log(image, "img");
   const [files, setFiles] = useState([]);
   //   const [progresses, setProgresses] = useState({});
 
+  // const addAttachment = async (file, messageID) => {
+  //   const types = {
+  //     image: "IMAGE",
+  //     video: "VIDEO",
+  //   };
+
+  //   const newAttachment = {
+  //     storageKey: await uploadFile(file.uri),
+  //     type: types[file.type],
+  //     width: file.width,
+  //     height: file.height,
+  //     duration: file.duration,
+  //     messageID,
+  //     chatroomID: chatroom.id,
+  //   };
+  //   return API.graphql(
+  //     graphqlOperation(createAttachment, { input: newAttachment })
+  //   );
+  // };
   const onSend = async () => {
     const authUser = await Auth.currentAuthenticatedUser();
 
@@ -36,13 +58,18 @@ const InputBox = ({ chatRoom }) => {
       userID: authUser.attributes.sub,
     };
     if (image) {
+      console.log(image, "image");
+      // let img = await uploadFile(image);
+      // newMessage.images = [].push(img);
       newMessage.images = [await uploadFile(image)];
       setImage(null);
     }
+    console.log(newMessage.images, "newimg");
 
     const newMessageData = await API.graphql(
       graphqlOperation(createMessage, { input: newMessage })
     );
+    console.log(newMessageData);
     // console.warn("Sending new message: ", newMessage);
 
     setText("");
@@ -67,26 +94,6 @@ const InputBox = ({ chatRoom }) => {
     );
   };
 
-  // const addAttachment = async (file, messageID) => {
-  //   const types = {
-  //     image: "IMAGE",
-  //     video: "VIDEO",
-  //   };
-
-  //   const newAttachment = {
-  //     storageKey: await uploadFile(file.uri),
-  //     type: types[file.type],
-  //     width: file.width,
-  //     height: file.height,
-  //     duration: file.duration,
-  //     messageID,
-  //     chatroomID: chatroom.id,
-  //   };
-  //   return API.graphql(
-  //     graphqlOperation(createAttachment, { input: newAttachment })
-  //   );
-  // };
-
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -95,10 +102,12 @@ const InputBox = ({ chatRoom }) => {
       quality: 1,
       // allowsMultipleSelection: true,
     });
-    console.log(result);
+    // console.log(result, "result");
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+
+      // console.log(JSON.stringify(result.assets[0].uri), "stringimageUri");
       // if (result.selected) {
       //   setFiles(result.selected);
       // } else {
@@ -110,11 +119,17 @@ const InputBox = ({ chatRoom }) => {
   const uploadFile = async (fileUri) => {
     try {
       const response = await fetch(fileUri);
+      console.log(response, "response");
       const blob = await response.blob();
+      console.log(blob, "blob");
       const key = `${uuidv4()}.png`;
+      console.log(key, "key");
 
+      console.log(blob.data.type, "blobtype");
       await Storage.put(key, blob, {
-        contentType: "image/png", // contentType is optional
+        contentType: blob.data.type,
+        // contentType: "image/jpeg",
+        // contentType is optional
         // progressCallback: (progress) => {
         //   console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
         //   setProgresses((p) => ({
@@ -123,6 +138,8 @@ const InputBox = ({ chatRoom }) => {
         //   }));
         // },
       });
+      // console.log(key, "key");
+      // console.log(JSON.stringify(key), "stringifyKey");
       return key;
     } catch (err) {
       console.log("Error uploading file:", err);
@@ -187,7 +204,7 @@ const InputBox = ({ chatRoom }) => {
           />
           <MaterialIcons
             name="highlight-remove"
-            onPress={() => setImage(null)}
+            onPress={() => setImage("")}
             // onPress={() =>
             //   setFiles((existingFiles) =>
             //     existingFiles.filter((file) => file !== item)
