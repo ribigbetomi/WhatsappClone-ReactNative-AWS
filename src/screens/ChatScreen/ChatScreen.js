@@ -9,24 +9,19 @@ import {
   Platform,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import bg from "../../assets/images/BG.png";
-import messages from "../../assets/data/messages.json";
-
-// import Message from "../../components/Message";
-// import InputBox from "../../components/InputBox";
-
-// import bg from "../../../assets/images/BG.png";
+import bg from "../../../assets/images/BG.png";
 import { API, graphqlOperation } from "aws-amplify";
-import { getChatRoom, listMessagesByChatRoom } from "../graphql/queries";
+import { getChatRoom } from "../../graphql/queries";
+import { listMessagesByChatRoom } from "./ChatScreenQueries";
 import {
   onCreateAttachment,
   onCreateMessage,
   onUpdateChatRoom,
-} from "../graphql/subscriptions";
+} from "../../graphql/subscriptions";
 // import { Feather } from "@expo/vector-icons";
 
-import Message from "../components/ChatListItem/Message";
-import InputBox from "../components/InputBox";
+import Message from "../../components/ChatListItem/Message";
+import InputBox from "../../components/InputBox";
 import { Feather } from "@expo/vector-icons";
 
 const ChatScreen = () => {
@@ -152,40 +147,12 @@ const ChatScreen = () => {
     };
   }, [chatRoomID]);
 
-  //   useEffect(() => {
-  //     navigation.setOptions({
-  //       title: route.params.name,
-  //       headerRight: () => (
-  //         <Feather
-  //           onPress={() => navigation.navigate("Group Info", { id: chatroomID })}
-  //           name="more-vertical"
-  //           size={24}
-  //           color="gray"
-  //         />
-  //       ),
-  //     });
-
   if (!chatRoom) {
     return <ActivityIndicator />;
   }
-  // console.log(JSON.stringify(chatRoom));
 
+  console.log(JSON.stringify(messages, null, 2));
   return (
-    // <KeyboardAvoidingView
-    //   behavior={Platform.OS === "ios" ? "padding" : "height"}
-    //   keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 90}
-    //   style={styles.bg}
-    // >
-    //   <ImageBackground source={bg} style={styles.bg}>
-    //     <FlatList
-    //       data={messages}
-    //       renderItem={({ item }) => <Message message={item} />}
-    //       style={styles.list}
-    //       inverted
-    //     />
-    //     {/* <InputBox chatroom={chatRoom} /> */}
-    //   </ImageBackground>
-    // </KeyboardAvoidingView>
     <KeyboardAvoidingView
       enabled
       behavior={Platform.OS === "iOS" ? "padding" : "height"}
@@ -195,7 +162,6 @@ const ChatScreen = () => {
       <ImageBackground source={bg} style={styles.bg}>
         <FlatList
           data={messages}
-          // data={chatRoom.Messages.items}
           renderItem={({ item }) => <Message message={item} />}
           keyExtractor={(item) => item.id}
           style={styles.list}

@@ -15,6 +15,10 @@ import { S3Image } from "aws-amplify-react-native";
 // import ImageAttachments from "./ImageAttachments";
 // import VideoAttachments from "./VideoAttachments";
 import ImageView from "react-native-image-viewing";
+import { Video } from "expo-av";
+import ImageAttachments from "./ImageAttachments";
+import VideoAttachments from "./VideoAttachments";
+
 dayjs.extend(relativeTime);
 
 const Message = ({ message }) => {
@@ -22,13 +26,12 @@ const Message = ({ message }) => {
   const [imageSources, setImageSources] = useState([]);
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
   const { width } = useWindowDimensions();
+  const [downloadedAttachments, setDownloadedAttachments] = useState([]);
 
   // console.log(imageSources, "sourcess");
   // const isMyMessage = () => {
   //   return message.userID === authUser.attributes.sub;
   // };
-
-  //   const [downloadAttachments, setDownloadedAttachments] = useState([]);
 
   useEffect(() => {
     const isMyMessage = async () => {
@@ -41,45 +44,45 @@ const Message = ({ message }) => {
   }, []);
 
   useEffect(() => {
-    const downloadedImages = async () => {
-      if (message.images?.length > 0) {
-        // const uri = await Storage.get(message.images[0], { level: "public" });
-        // console.log(uri, "uri");
-        const uris = await Promise.all(message.images.map(Storage.get));
-        // since the parameter of the arrow function is the same with the parameter of the function we're calling, we can also do images.map(uploadFile)
-        setImageSources(uris.map((uri) => ({ uri })));
-        // setImageSources([{ uris }]);
-      }
-    };
-    downloadedImages();
-
-    // const downloadAttachments = async () => {
-    //   if (message.Attachments.items) {
-    //     const downloadedAttachments = await Promise.all(
-    //       message.Attachments.items.map((attachment) =>
-    //         Storage.get(attachment.storageKey).then((uri) => ({
-    //           ...attachment,
-    //           uri,
-    //         }))
-    //       )
-    //     );
-
-    //     setDownloadedAttachments(downloadedAttachments);
+    // const downloadedAttachments = async () => {
+    //   if (message.Attachments?.items?.length > 0) {
+    //     // const uri = await Storage.get(message.images[0], { level: "public" });
+    //     // console.log(uri, "uri");
+    //     const uris = await Promise.all(message.Attachments.items.map(Storage.get));
+    //     // since the parameter of the arrow function is the same with the parameter of the function we're calling, we can also do images.map(uploadFile)
+    //     setImageSources(uris.map((uri) => ({ uri })));
+    //     // setImageSources([{ uris }]);
     //   }
     // };
-    // downloadAttachments();
-  }, [message]);
+    // downloadedAttachments();
+
+    const downloadAttachments = async () => {
+      if (message.Attachments.items) {
+        const downloadedAttachments = await Promise.all(
+          message.Attachments.items.map((attachment) =>
+            Storage.get(attachment.storageKey).then((uri) => ({
+              ...attachment,
+              uri,
+            }))
+          )
+        );
+
+        setDownloadedAttachments(downloadedAttachments);
+      }
+    };
+    downloadAttachments();
+  }, [message.Attachments.items]);
   // console.log(imageSources, "sourcess");
   // }, [JSON.stringify(message.Attachments.items)]);
 
   const imageContainerWidth = width * 0.8 - 30;
 
-  //   const imageAttachments = downloadAttachments.filter(
-  //     (at) => at.type === "IMAGE"
-  //   );
-  //   const videoAttachments = downloadAttachments.filter(
-  //     (at) => at.type === "VIDEO"
-  //   );
+  const imageAttachments = downloadedAttachments.filter(
+    (at) => at.type === "IMAGE"
+  );
+  const videoAttachments = downloadedAttachments.filter(
+    (at) => at.type === "VIDEO"
+  );
 
   return (
     <View
@@ -91,27 +94,50 @@ const Message = ({ message }) => {
         },
       ]}
     >
-      {message.images?.length > 0 && (
+      {downloadedAttachments.length > 0 && (
         <View style={[{ width: imageContainerWidth }, styles.images]}>
-          {imageSources.map((imageSource, index) => (
-            <Pressable
-              style={
-                imageSources.length === 1
-                  ? { width: "100%", aspectRatio: 2, padding: 3 }
-                  : styles.imageContainer
-              }
-              key={index}
-              onPress={() => setImageViewerVisible(true)}
-            >
-              <Image source={imageSource} style={styles.image} />
-            </Pressable>
-          ))}
+          <ImageAttachments attachments={imageAttachments} />
+          <VideoAttachments
+            attachments={videoAttachments}
+            width={imageContainerWidth}
+          />
+          {/* {downloadedAttachments.map((attachment, index) =>
+            attachment.type === "IMAGE" ? (
+              <Pressable
+                style={
+                  downloadedAttachments.length === 1
+                    ? { width: "100%", aspectRatio: 2, padding: 3 }
+                    : styles.imageContainer
+                }
+                key={index}
+                onPress={() => setImageViewerVisible(true)}
+              >
+                <Image source={{ uri: attachment.uri }} style={styles.image} />
+              </Pressable>
+            ) : (
+              <Video
+                key={attachment.id}
+                useNativeControls
+                source={{
+                  uri: attachment.uri,
+                }}
+                shouldPlay={false}
+                style={{
+                  width: imageContainerWidth,
+                  height:
+                    (attachment.height * imageContainerWidth) /
+                    attachment.width,
+                }}
+                resizeMode="contain"
+              />
+            )
+          )}
           <ImageView
-            images={imageSources}
+            images={downloadedAttachments.map(({ uri }) => ({ uri }))}
             imageIndex={0}
             visible={imageViewerVisible}
             onRequestClose={() => setImageViewerVisible(false)}
-          />
+          /> */}
         </View>
       )}
       {/* <S3Image imgKey={message.images[0]} style={styles.image} /> */}

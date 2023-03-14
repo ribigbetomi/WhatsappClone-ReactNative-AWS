@@ -30,25 +30,27 @@ const InputBox = ({ chatRoom }) => {
   const [files, setFiles] = useState([]);
   //   const [progresses, setProgresses] = useState({});
 
-  // const addAttachment = async (file, messageID) => {
-  //   const types = {
-  //     image: "IMAGE",
-  //     video: "VIDEO",
-  //   };
+  const addAttachment = async (file, messageID) => {
+    const types = {
+      image: "IMAGE",
+      video: "VIDEO",
+    };
 
-  //   const newAttachment = {
-  //     storageKey: await uploadFile(file.uri),
-  //     type: types[file.type],
-  //     width: file.width,
-  //     height: file.height,
-  //     duration: file.duration,
-  //     messageID,
-  //     chatroomID: chatroom.id,
-  //   };
-  //   return API.graphql(
-  //     graphqlOperation(createAttachment, { input: newAttachment })
-  //   );
-  // };
+    const newAttachment = {
+      storageKey: await uploadFile(file.uri),
+      type: types[file.type],
+      width: file.width,
+      height: file.height,
+      duration: file.duration,
+      messageID,
+      chatroomID: chatRoom.id,
+    };
+
+    return API.graphql(
+      graphqlOperation(createAttachment, { input: newAttachment })
+    );
+  };
+
   const onSend = async () => {
     const authUser = await Auth.currentAuthenticatedUser();
 
@@ -57,15 +59,17 @@ const InputBox = ({ chatRoom }) => {
       text,
       userID: authUser.attributes.sub,
     };
-    if (images.length > 0) {
-      // console.log(images, "image");
-      newMessage.images = await Promise.all(
-        images.map((img) => uploadFile(img))
-      );
-      // since the parameter of the arrow function is the same with the parameter of the function we're calling, we can also do images.map(uploadFile)
-      setImages([]);
-    }
-    console.log(newMessage.images, "newimg");
+
+    // if (files.length > 0) {
+    //   // console.log(images, "image");
+    //   newMessage.images = await Promise.all(
+    //     images.map((img) => uploadFile(img))
+    //   );
+    //   // since the parameter of the arrow function is the same with the parameter of the function we're calling, we can also do images.map(uploadFile)
+    //   setImages([]);
+    // }
+
+    // console.log(newMessage.images, "newimg");
 
     const newMessageData = await API.graphql(
       graphqlOperation(createMessage, { input: newMessage })
@@ -76,12 +80,13 @@ const InputBox = ({ chatRoom }) => {
     setText("");
 
     //   // create attachments
-    //   await Promise.all(
-    //     files.map((file) =>
-    //       addAttachment(file, newMessageData.data.createMessage.id)
-    //     )
-    //   );
-    //   setFiles([]);
+    const getAttachment = await Promise.all(
+      files.map((file) =>
+        addAttachment(file, newMessageData.data.createMessage.id)
+      )
+    );
+    console.log(getAttachment);
+    setFiles([]);
 
     //   // set the new message as LastMessage of the ChatRoom
     await API.graphql(
@@ -98,19 +103,19 @@ const InputBox = ({ chatRoom }) => {
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      // mediaTypes: ImagePicker.MediaTypeOptions.All,
+      // mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
       quality: 1,
       allowsMultipleSelection: true,
     });
     console.log(result, "result");
 
     if (!result.canceled) {
-      if (result.assets.length > 1) {
-        setImages(result.assets.map((asset) => asset.uri));
-      } else {
-        setImages([result.assets[0].uri]);
-      }
+      // if (result.assets.length > 1) {
+      setFiles(result.assets);
+      // } else {
+      //   setImages([result.assets[0].uri]);
+      // }
 
       // console.log(JSON.stringify(result.assets[0].uri), "stringimageUri");
       // if (result.selected) {
@@ -200,23 +205,23 @@ const InputBox = ({ chatRoom }) => {
     // )} */}
 
     <>
-      {images.length > 0 && (
+      {files.length > 0 && (
         <View style={styles.attachmentsContainer}>
           <FlatList
-            data={images}
+            data={files}
             horizontal
             renderItem={({ item }) => (
               <>
                 <Image
-                  source={{ uri: item }}
+                  source={{ uri: item.uri }}
                   style={styles.selectedImage}
                   resizeMode="contain"
                 />
                 <MaterialIcons
                   name="highlight-remove"
                   onPress={() =>
-                    setImages((existingImages) =>
-                      existingImages.filter((img) => img !== item)
+                    setFiles((existingFiles) =>
+                      existingFiles.filter((file) => file !== item)
                     )
                   }
                   // onPress={() =>
