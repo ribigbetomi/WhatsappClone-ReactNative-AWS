@@ -28,6 +28,7 @@ const ChatScreen = () => {
   const [chatRoom, setChatRoom] = useState(null);
   // console.log(chatRoom, "chatRoomm");
   const [messages, setMessages] = useState([]);
+  console.log(JSON.stringify(messages[0], null, 2), "newnew");
   // console.log(messages, "messages");
 
   const route = useRoute();
@@ -113,45 +114,44 @@ const ChatScreen = () => {
       error: (err) => console.warn(err),
     });
 
-    //     // Subscribe to new attachments
-    //     const subscriptionAttachments = API.graphql(
-    //       graphqlOperation(onCreateAttachment, {
-    //         filter: { chatroomID: { eq: chatroomID } },
-    //       })
-    //     ).subscribe({
-    //       next: ({ value }) => {
-    //         const newAttachment = value.data.onCreateAttachment;
-    //         setMessages((existingMessages) => {
-    //           const messageToUpdate = existingMessages.find(
-    //             (em) => em.id === newAttachment.messageID
-    //           );
-    //           if (!messageToUpdate) {
-    //             return existingMessages;
-    //           }
-    //           if (!messageToUpdate?.Attachments?.items) {
-    //             messageToUpdate.Attachments.items = [];
-    //           }
-    //           messageToUpdate.Attachments.items.push(newAttachment);
+    // Subscribe to new attachments
+    const subscriptionAttachments = API.graphql(
+      graphqlOperation(onCreateAttachment, {
+        filter: { chatroomID: { eq: chatRoomID } },
+      })
+    ).subscribe({
+      next: ({ value }) => {
+        const newAttachment = value.data.onCreateAttachment;
+        setMessages((existingMessages) => {
+          const messageToUpdate = existingMessages.find(
+            (em) => em.id === newAttachment.messageID
+          );
+          if (!messageToUpdate) {
+            return existingMessages;
+          }
+          if (!messageToUpdate?.Attachments?.items) {
+            messageToUpdate.Attachments.items = [];
+          }
+          messageToUpdate.Attachments.items.push(newAttachment);
 
-    //           return existingMessages.map((m) =>
-    //             m.id === messageToUpdate.id ? messageToUpdate : m
-    //           );
-    //         });
-    //       },
-    //       error: (err) => console.warn(err),
-    //     });
+          return existingMessages.map((m) =>
+            m.id === messageToUpdate.id ? messageToUpdate : m
+          );
+        });
+      },
+      error: (err) => console.warn(err),
+    });
 
     return () => {
       subscription.unsubscribe();
-      // subscriptionAttachments.unsubscribe();
+      subscriptionAttachments.unsubscribe();
     };
-  }, [chatRoomID]);
+  }, [chatRoomID, setMessages]);
 
   if (!chatRoom) {
     return <ActivityIndicator />;
   }
 
-  console.log(JSON.stringify(messages, null, 2));
   return (
     <KeyboardAvoidingView
       enabled

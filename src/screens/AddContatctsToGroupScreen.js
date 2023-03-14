@@ -14,7 +14,7 @@ const AddContactsToGroupScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const chatRoom = route.params.chatRoom;
-  console.log("chatroom", JSON.stringify(chatRoom));
+  // console.log("chatroom", JSON.stringify(chatRoom));
 
   useEffect(() => {
     API.graphql(graphqlOperation(listUsers)).then((result) => {

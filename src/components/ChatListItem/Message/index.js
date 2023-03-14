@@ -71,7 +71,7 @@ const Message = ({ message }) => {
       }
     };
     downloadAttachments();
-  }, [message.Attachments.items]);
+  }, [JSON.stringify(message.Attachments.items)]);
   // console.log(imageSources, "sourcess");
   // }, [JSON.stringify(message.Attachments.items)]);
 

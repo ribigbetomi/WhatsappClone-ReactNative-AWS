@@ -28,7 +28,7 @@ const InputBox = ({ chatRoom }) => {
   // console.log(text, "text");
   // console.log(image, "img");
   const [files, setFiles] = useState([]);
-  //   const [progresses, setProgresses] = useState({});
+  const [progresses, setProgresses] = useState({});
 
   const addAttachment = async (file, messageID) => {
     const types = {
@@ -74,7 +74,7 @@ const InputBox = ({ chatRoom }) => {
     const newMessageData = await API.graphql(
       graphqlOperation(createMessage, { input: newMessage })
     );
-    console.log(newMessageData);
+    // console.log(newMessageData);
     // console.warn("Sending new message: ", newMessage);
 
     setText("");
@@ -85,7 +85,7 @@ const InputBox = ({ chatRoom }) => {
         addAttachment(file, newMessageData.data.createMessage.id)
       )
     );
-    console.log(getAttachment);
+    // console.log(getAttachment);
     setFiles([]);
 
     //   // set the new message as LastMessage of the ChatRoom
@@ -108,7 +108,7 @@ const InputBox = ({ chatRoom }) => {
       quality: 1,
       allowsMultipleSelection: true,
     });
-    console.log(result, "result");
+    // console.log(result, "result");
 
     if (!result.canceled) {
       // if (result.assets.length > 1) {
@@ -129,15 +129,22 @@ const InputBox = ({ chatRoom }) => {
   const uploadFile = async (fileUri) => {
     try {
       const response = await fetch(fileUri);
-      console.log(response, "response");
+      // console.log(response, "response");
       const blob = await response.blob();
-      console.log(blob, "blob");
+      // console.log(blob, "blob");
       const key = `${uuidv4()}.png`;
-      console.log(key, "key");
+      // console.log(key, "key");
 
-      console.log(blob.data.type, "blobtype");
+      // console.log(blob.data.type, "blobtype");
       await Storage.put(key, blob, {
         contentType: blob.data.type,
+        progressCallback: (progress) => {
+          console.log(`Uploaded: ${progress.loaded}/${progress.total}`);
+          setProgresses((p) => ({
+            ...p,
+            [fileUri]: progress.loaded / progress.total,
+          }));
+        },
         // contentType: "image/jpeg",
         // contentType is optional
         // progressCallback: (progress) => {
@@ -217,6 +224,23 @@ const InputBox = ({ chatRoom }) => {
                   style={styles.selectedImage}
                   resizeMode="contain"
                 />
+
+                {progresses[item.uri] && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      backgroundColor: "#8c8c8cAA",
+                      padding: 5,
+                      borderRadius: 50,
+                    }}
+                  >
+                    <Text style={{ color: "white", fontWeight: "bold" }}>
+                      {(progresses[item.uri] * 100).toFixed(0)} %
+                    </Text>
+                  </View>
+                )}
                 <MaterialIcons
                   name="highlight-remove"
                   onPress={() =>
